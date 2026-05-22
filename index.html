@@ -3,374 +3,482 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>記帳</title>
+<title>記帳手帳</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-  :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface2: #242424;
-    --border: #2e2e2e;
-    --accent: #c8f542;
-    --accent-dim: #8aad1e;
-    --text: #f0f0f0;
-    --text-dim: #888;
-    --red: #ff5e5e;
-    --blue: #5eb8ff;
-    --orange: #ffaa5e;
-    --radius: 12px;
-  }
+:root {
+  --cream: #f5f0e8;
+  --cream2: #ede8dc;
+  --cream3: #e4ddd0;
+  --navy: #1a2d4a;
+  --navy2: #243d62;
+  --navy3: #2f4f7c;
+  --gold: #b8962e;
+  --gold2: #d4ac3a;
+  --ink: #2c2318;
+  --ink2: #4a3e30;
+  --ink3: #7a6e60;
+  --red: #c0392b;
+  --green: #1e6b4a;
+  --border: #cdc4b0;
+  --border2: #b8ad98;
+  --font-zh: 'PingFang TC', 'Apple LiGothic Medium', '蘋方-繁', 'Microsoft JhengHei', sans-serif;
+  --font-en: 'Plus Jakarta Sans', 'Aptos', sans-serif;
+  --radius: 4px;
+  --radius2: 8px;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans TC', sans-serif;
-    min-height: 100vh;
-    padding-bottom: 40px;
-  }
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-zh);
+  min-height: 100vh;
+  padding-bottom: 48px;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 27px,
+      rgba(180,168,148,0.18) 27px,
+      rgba(180,168,148,0.18) 28px
+    );
+}
 
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 20px 12px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+header {
+  background: var(--navy);
+  padding: 20px 20px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
-  header h1 {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 0.15em;
-    color: var(--accent);
-    text-transform: uppercase;
-  }
+.header-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
 
-  header .sub {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 2px;
-  }
+header h1 {
+  font-family: var(--font-en);
+  font-size: 20px;
+  font-weight: 600;
+  color: #f5f0e8;
+  letter-spacing: 0.12em;
+}
 
-  .tabs {
-    display: flex;
-    gap: 4px;
-    padding: 12px 16px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-  }
+header .sub {
+  font-size: 10px;
+  color: rgba(245,240,232,0.5);
+  letter-spacing: 0.15em;
+  font-family: 'DM Mono', monospace;
+  margin-top: 3px;
+}
 
-  .tab {
-    flex: 1;
-    padding: 8px 4px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--text-dim);
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-  }
-  .tab.active {
-    background: var(--accent);
-    color: #000;
-    border-color: var(--accent);
-    font-weight: 500;
-  }
+.header-deco {
+  width: 32px;
+  height: 2px;
+  background: var(--gold2);
+  margin-bottom: 4px;
+}
 
-  .form-section {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+.tabs {
+  background: var(--navy2);
+  display: flex;
+  border-bottom: 2px solid var(--gold);
+}
 
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
+.tab {
+  flex: 1;
+  padding: 11px 6px;
+  background: transparent;
+  border: none;
+  color: rgba(245,240,232,0.5);
+  font-size: 12px;
+  font-family: var(--font-en);
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  position: relative;
+}
 
-  label {
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-  }
+.tab.active {
+  color: var(--gold2);
+  border-bottom-color: var(--gold2);
+  background: rgba(245,240,232,0.06);
+}
 
-  select, input[type="text"], input[type="number"], input[type="date"] {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-size: 15px;
-    font-family: 'Noto Sans TC', sans-serif;
-    padding: 11px 14px;
-    appearance: none;
-    -webkit-appearance: none;
-    outline: none;
-    transition: border-color 0.15s;
-  }
+/* ── Form ── */
+.form-section {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  select:focus, input:focus {
-    border-color: var(--accent);
-  }
+.field { display: flex; flex-direction: column; gap: 5px; }
 
-  select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
-  }
+label {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.14em;
+  color: var(--ink3);
+  text-transform: uppercase;
+}
 
-  .amount-wrap {
-    position: relative;
-  }
-  .amount-wrap .currency {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-dim);
-    font-size: 15px;
-    pointer-events: none;
-  }
-  .amount-wrap input {
-    padding-left: 30px;
-    font-family: 'DM Mono', monospace;
-    font-size: 22px;
-    color: var(--accent);
-  }
+select, input[type="text"], input[type="number"], input[type="date"] {
+  width: 100%;
+  background: rgba(255,255,255,0.65);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: var(--font-zh);
+  padding: 10px 13px;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
 
-  .row2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
+select:focus, input:focus {
+  border-color: var(--navy2);
+  border-bottom-color: var(--navy);
+  background: rgba(255,255,255,0.9);
+}
 
-  .flow-bar {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-  }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a6e60' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-color: rgba(255,255,255,0.65);
+  padding-right: 32px;
+}
 
-  .flow-btn {
-    padding: 8px 4px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--text-dim);
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-  }
-  .flow-btn.active-expense { background: #ff5e5e22; border-color: var(--red); color: var(--red); }
-  .flow-btn.active-income { background: #5eb8ff22; border-color: var(--blue); color: var(--blue); }
-  .flow-btn.active-transfer { background: #ffaa5e22; border-color: var(--orange); color: var(--orange); }
-  .flow-btn.active-pointin { background: #c8f54222; border-color: var(--accent); color: var(--accent); }
-  .flow-btn.active-pointout { background: #c8f54222; border-color: var(--accent); color: var(--accent); }
+.amount-wrap { position: relative; }
+.amount-wrap .currency {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink3);
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  pointer-events: none;
+}
+.amount-wrap input {
+  padding-left: 26px;
+  font-family: 'DM Mono', monospace;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--navy);
+  letter-spacing: 0.02em;
+}
 
-  .add-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 15px;
-    font-weight: 700;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer;
-    margin-top: 4px;
-    transition: opacity 0.15s;
-    letter-spacing: 0.05em;
-  }
-  .add-btn:active { opacity: 0.8; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-  /* Records */
-  .records-section { padding: 0 16px; }
+/* Flow buttons */
+.flow-bar { display: flex; gap: 6px; flex-wrap: wrap; }
 
-  .records-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 0 10px;
-  }
-  .records-header h2 {
-    font-size: 13px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text-dim);
-    letter-spacing: 0.08em;
-  }
-  .count-badge {
-    background: var(--surface2);
-    color: var(--accent);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-  }
+.flow-btn {
+  flex: 1;
+  min-width: 56px;
+  padding: 7px 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.5);
+  color: var(--ink3);
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
 
-  .record-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-  }
+.flow-btn.active-expense {
+  background: rgba(192,57,43,0.08);
+  border-color: var(--red);
+  color: var(--red);
+  border-bottom-width: 2px;
+}
+.flow-btn.active-income {
+  background: rgba(30,107,74,0.08);
+  border-color: var(--green);
+  color: var(--green);
+  border-bottom-width: 2px;
+}
+.flow-btn.active-transfer {
+  background: rgba(26,45,74,0.08);
+  border-color: var(--navy);
+  color: var(--navy);
+  border-bottom-width: 2px;
+}
+.flow-btn.active-pointin, .flow-btn.active-pointout {
+  background: rgba(184,150,46,0.1);
+  border-color: var(--gold);
+  color: var(--gold);
+  border-bottom-width: 2px;
+}
 
-  .record-left { flex: 1; min-width: 0; }
+/* Section title */
+.section-title {
+  font-family: var(--font-en);
+  font-size: 11px;
+  color: var(--navy3);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+}
 
-  .record-flow-type {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    margin-bottom: 4px;
-  }
+.add-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--navy);
+  color: var(--cream);
+  border: none;
+  border-radius: var(--radius2);
+  font-size: 14px;
+  font-family: var(--font-en);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.2s, opacity 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.add-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold2);
+}
+.add-btn:active { opacity: 0.85; }
 
-  .flow-tag {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid;
-  }
-  .flow-tag.Expense { color: var(--red); border-color: #ff5e5e55; background: #ff5e5e11; }
-  .flow-tag.Income { color: var(--blue); border-color: #5eb8ff55; background: #5eb8ff11; }
-  .flow-tag.Transfer { color: var(--orange); border-color: #ffaa5e55; background: #ffaa5e11; }
-  .flow-tag.PointIn, .flow-tag.PointOut { color: var(--accent); border-color: #c8f54255; background: #c8f54211; }
+/* ── Records ── */
+.records-section { padding: 0 16px; }
 
-  .type-tag {
-    font-size: 11px;
-    color: var(--text-dim);
-  }
+.records-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 12px;
+}
+.records-header h2 {
+  font-family: var(--font-en);
+  font-size: 13px;
+  color: var(--navy);
+  letter-spacing: 0.12em;
+}
+.count-badge {
+  background: var(--navy);
+  color: var(--gold2);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+}
 
-  .record-main {
-    font-size: 13px;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.record-item {
+  background: rgba(255,255,255,0.6);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 11px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.record-item.flow-expense { border-left-color: var(--red); }
+.record-item.flow-income { border-left-color: var(--green); }
+.record-item.flow-transfer { border-left-color: var(--navy3); }
+.record-item.flow-pointin, .record-item.flow-pointout { border-left-color: var(--gold); }
 
-  .record-sub {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 2px;
-  }
+.record-left { flex: 1; min-width: 0; }
 
-  .record-amount {
-    font-family: 'DM Mono', monospace;
-    font-size: 16px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .record-amount.expense { color: var(--red); }
-  .record-amount.income { color: var(--blue); }
-  .record-amount.transfer { color: var(--orange); }
-  .record-amount.point { color: var(--accent); }
+.record-flow-type {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-bottom: 3px;
+}
 
-  .record-date {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--text-dim);
-    margin-top: 2px;
-    text-align: right;
-  }
+.flow-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.flow-tag.Expense { color: var(--red); border-color: rgba(192,57,43,0.3); background: rgba(192,57,43,0.06); }
+.flow-tag.Income { color: var(--green); border-color: rgba(30,107,74,0.3); background: rgba(30,107,74,0.06); }
+.flow-tag.Transfer { color: var(--navy3); border-color: rgba(47,79,124,0.3); background: rgba(47,79,124,0.06); }
+.flow-tag.PointIn, .flow-tag.PointOut { color: var(--gold); border-color: rgba(184,150,46,0.35); background: rgba(184,150,46,0.07); }
 
-  .delete-btn {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    font-size: 16px;
-    cursor: pointer;
-    padding: 4px 6px;
-    opacity: 0.5;
-    transition: opacity 0.15s;
-  }
-  .delete-btn:hover { opacity: 1; color: var(--red); }
+.type-tag { font-size: 11px; color: var(--ink3); }
 
-  .export-section {
-    padding: 16px;
-  }
+.record-main {
+  font-size: 13px;
+  font-family: var(--font-zh);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .export-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 14px;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: border-color 0.15s;
-  }
-  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
+.record-sub { font-size: 11px; color: var(--ink3); margin-top: 1px; }
 
-  .clear-btn {
-    width: 100%;
-    padding: 12px;
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 13px;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: color 0.15s;
-  }
-  .clear-btn:hover { color: var(--red); border-color: var(--red); }
+.record-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.record-amount.expense { color: var(--red); }
+.record-amount.income { color: var(--green); }
+.record-amount.transfer { color: var(--navy3); }
+.record-amount.point { color: var(--gold); }
 
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-dim);
-    font-size: 13px;
-  }
-  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+.record-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--ink3);
+  margin-top: 2px;
+  text-align: right;
+}
 
-  .notes-input { font-size: 14px !important; }
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--ink3);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 5px;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+.delete-btn:hover { opacity: 1; color: var(--red); }
 
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.5);
-  }
+/* ── Export ── */
+.export-section { padding: 20px 16px; }
 
-  .section-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 4px 0 16px;
-  }
+.export-info {
+  background: rgba(255,255,255,0.55);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--ink2);
+  line-height: 1.7;
+}
+
+.export-info .label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--navy3);
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.btn-sheets {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  background: rgba(255,255,255,0.7);
+  color: var(--navy);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--border2);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: var(--font-en);
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-decoration: none;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-sheets:hover { background: rgba(255,255,255,0.95); }
+
+.btn-export {
+  width: 100%;
+  padding: 13px;
+  background: var(--navy2);
+  color: var(--cream);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: var(--font-en);
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+  margin-bottom: 8px;
+}
+.btn-export:hover { background: var(--navy); }
+
+.btn-clear {
+  width: 100%;
+  padding: 11px;
+  background: transparent;
+  color: var(--ink3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-family: var(--font-zh);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: color 0.15s;
+}
+.btn-clear:hover { color: var(--red); border-color: rgba(192,57,43,0.4); }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--ink3);
+  font-size: 13px;
+  font-family: var(--font-en);
+  letter-spacing: 0.1em;
+}
+.empty-state .icon { font-size: 28px; margin-bottom: 10px; opacity: 0.5; }
+
+input[type="date"]::-webkit-calendar-picker-indicator { filter: opacity(0.4); }
+
+.divider { height: 1px; background: var(--border); margin: 4px 0 14px; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>記帳 · Ledger</h1>
-  <div class="sub">輸入記錄 → 匯出 Excel</div>
+  <div class="header-inner">
+    <div>
+      <h1>記帳手帳</h1>
+      <div class="sub">PERSONAL LEDGER · SYNC TO SHEETS</div>
+    </div>
+    <div class="header-deco"></div>
+  </div>
 </header>
 
 <div class="tabs">
-  <button class="tab active" onclick="showTab('input')">＋ 新增</button>
+  <button class="tab active" onclick="showTab('input')">新增記錄</button>
   <button class="tab" onclick="showTab('records')">記錄 <span id="rec-count"></span></button>
   <button class="tab" onclick="showTab('export')">匯出</button>
 </div>
@@ -384,55 +492,55 @@
   </div>
 
   <div class="field">
-    <label>Flow 類型</label>
+    <div class="section-title" style="margin-bottom:8px;">Flow 類型</div>
     <div class="flow-bar">
       <button class="flow-btn active-expense" data-flow="Expense" onclick="setFlow(this)">Expense</button>
       <button class="flow-btn" data-flow="Income" onclick="setFlow(this)">Income</button>
       <button class="flow-btn" data-flow="Transfer" onclick="setFlow(this)">Transfer</button>
-      <button class="flow-btn" data-flow="PointIn" onclick="setFlow(this)">PtIn</button>
-      <button class="flow-btn" data-flow="PointOut" onclick="setFlow(this)">PtOut</button>
+      <button class="flow-btn" data-flow="PointIn" onclick="setFlow(this)">PointIn</button>
+      <button class="flow-btn" data-flow="PointOut" onclick="setFlow(this)">PointOut</button>
     </div>
   </div>
 
   <div class="field amount-wrap">
-    <label>金額</label>
+    <label>金額 Amount</label>
     <span class="currency">$</span>
     <input type="number" id="f-amount" placeholder="0" step="0.01" min="0" inputmode="decimal">
   </div>
 
   <div class="row2">
     <div class="field">
-      <label>Out（付款）</label>
+      <label>Out　付款帳戶</label>
       <select id="f-out"></select>
     </div>
     <div class="field">
-      <label>In（收款）</label>
+      <label>In　收款帳戶</label>
       <select id="f-in"></select>
     </div>
   </div>
 
   <div class="row2">
     <div class="field">
-      <label>Type 大分類</label>
+      <label>Type　大分類</label>
       <select id="f-type" onchange="updateDetailOptions()"></select>
     </div>
     <div class="field">
-      <label>Detail 細項</label>
+      <label>Detail　細項</label>
       <select id="f-detail"></select>
     </div>
   </div>
 
   <div class="field">
-    <label>Vendor 商家</label>
-    <input type="text" id="f-vendor" placeholder="商家名稱（選填）" class="notes-input">
+    <label>Vendor　商家</label>
+    <input type="text" id="f-vendor" placeholder="商家名稱（選填）">
   </div>
 
   <div class="field">
-    <label>Notes 備註</label>
-    <input type="text" id="f-notes" placeholder="備註（選填）" class="notes-input">
+    <label>Notes　備註</label>
+    <input type="text" id="f-notes" placeholder="備註（選填）">
   </div>
 
-  <button class="add-btn" onclick="addRecord()">＋ 加入記錄</button>
+  <button class="add-btn" onclick="addRecord()">記　入</button>
 </div>
 
 <!-- RECORDS TAB -->
@@ -443,7 +551,7 @@
       <span class="count-badge" id="rec-count2">0 筆</span>
     </div>
     <div id="records-list">
-      <div class="empty-state"><div class="icon">📋</div>還沒有記錄</div>
+      <div class="empty-state"><div class="icon">📖</div>尚無記錄</div>
     </div>
   </div>
 </div>
@@ -451,37 +559,28 @@
 <!-- EXPORT TAB -->
 <div id="tab-export" style="display:none">
   <div class="export-section">
-    <div style="font-size:13px; color:var(--text-dim); margin-bottom:16px; line-height:1.8;">
-      每筆記錄新增時會<span style="color:var(--accent)">自動寫入 Google Sheets</span>。<br>
-      也可以匯出本機記錄為 Excel 備份。
+    <div class="export-info">
+      <span class="label">匯出欄位對應</span>
+      Date · Flow · Out · In · Amount · Type · Detail · Vendor · Notes
     </div>
-    <div style="font-size:11px; font-family:'DM Mono',monospace; color:var(--text-dim); margin-bottom:16px;">
-      欄位：Date / Flow / Out / In / Amount / Type / Detail / Vendor / Notes
-    </div>
-    <div class="section-divider"></div>
-    <a href="https://docs.google.com/spreadsheets" target="_blank" style="display:block; width:100%; padding:14px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:var(--radius); font-size:14px; text-align:center; text-decoration:none; margin-bottom:8px;">
-      📊 開啟 Google Sheets
+    <div class="divider"></div>
+    <a class="btn-sheets" href="https://docs.google.com/spreadsheets" target="_blank">
+      ▸ 開啟 Google Sheets
     </a>
-    <button class="export-btn" onclick="exportExcel()">
-      <span>📥</span> 下載本機記錄 (.xlsx)
+    <button class="btn-export" onclick="exportExcel()">
+      ↓ 下載本機記錄 (.xlsx)
     </button>
-    <button class="clear-btn" onclick="clearAll()">清除本機所有記錄</button>
+    <button class="btn-clear" onclick="clearAll()">清除本機所有記錄</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// ── Data ──────────────────────────────────────────────
-const FLOWS = ['Expense','Income','Transfer','PointIn','PointOut'];
-
 const ACCOUNTS = [
   '','Cash','Jason','Robin','Travelshare',
-  // Banks
   'FirstBank','Richart','Post','ShinKong','CTBC','KOKO','JKo','LinePay',
   'FuturePay','Mega','CloudBank','iLEO','NewNew','Obank','TBB','TCB',
-  'SnY','TaiwanBank','LandBank','DBS','Fubon','NEXT','Rakuten',
-  'GAMA Pay','Open',
-  // Credit Cards
+  'SnY','TaiwanBank','LandBank','DBS','Fubon','NEXT','Rakuten','GAMA Pay','Open',
   'CC FlyGo','CC GOGO','CC KOKO','CC Mega','CC KGI','CC FirstBank',
   'CC Fubon','CC YuanDa','CC Global','CC iBuy','CC TBB','CC TCB',
   'CC BoT','CC UBoT','CC J','CC JP','CC FBJCB','CC SKJCB','CC Currency',
@@ -489,16 +588,10 @@ const ACCOUNTS = [
   'CC AllMe','CC ESG','CC 7','CC Giving','CC LOL','CC CAL','CC TY',
   'CC Mitsui','CC SPJCB','CC Sport','CC Dawho','CC Lido','CC UniOpen',
   'CC Possible','CC OU','CC M','CC TSPoints','CC JKo',
-  // E-Cash
   'EC Mega','EC GOGO','EC KOKO','EC KGI','FamiPay',
-  // IC/IP
   'IC KOKO','IP LinePay','IP Obank','IP BoT',
-  // Foreign
   'CNY','USD','JPY','HKD','EUR','CAD','AUD','MYR','SGD','INR','THB',
-  // Assets
-  'Stock','Starbucks','GiftCard','Contact Lens','Hank',
-  // People
-  'DAD','MOM','CCPoint',
+  'Stock','Starbucks','GiftCard','Contact Lens','Hank','DAD','MOM','CCPoint',
 ];
 
 const TYPES = ['','Foods','Transport','Beauty','Sports','Travel','Entertainment',
@@ -519,64 +612,46 @@ const DETAIL_MAP = {
   'Invest':['','Stock','MLI','Others'],
   'MediCare':['','Clinic','Med','Others'],
   'Salary':['','Salary','Others'],
-  'Cashback':['','CC FlyGo','CC GOGO','CC KOKO','CC Mega','CC KGI','CC FirstBank',
-    'CC Fubon','CC YuanDa','CC Global','Others'],
+  'Cashback':['','CC FlyGo','CC GOGO','CC KOKO','CC Mega','CC KGI','CC FirstBank','CC Fubon','CC YuanDa','CC Global','Others'],
   'Points':['','LinePoint','HappyGo','FamiPoint','HiPoint','UUPon','Others'],
   'Others':['','Behaved Buy','AD','Others'],
-  '': [''],
+  '':[''],
 };
-// fallback for types not in map
-const ALL_DETAILS = ['','Breakfast','Lunch','Dinner','Coffee','Drinks','Alcohol','Grocery',
-  'MRT','Bus','Taxi','Train','Flight','Ferry','Car','CarPark','TPASS',
-  'Haircut','Clothes','Cosmetics','Contact Lens',
-  'Badminton','Gym','Swimming','Hiking','Diving','Ski',
-  'Movie','Games','Spotify','Netflix',
-  'iPhone','iPad','Mac','Apple','Service','Electronics',
-  'Mortgage','Rental','Bills','Living','Furniture',
-  'Accommodation','Admission','Telecom','Visa',
-  'Salary','Clinic','Others'];
+const ALL_DETAILS = ['','Breakfast','Lunch','Dinner','Coffee','Drinks','MRT','Bus','Taxi','Train','Flight',
+  'Haircut','Clothes','Cosmetics','Badminton','Gym','Movie','Games','Spotify','Netflix',
+  'iPhone','iPad','Mac','Mortgage','Rental','Bills','Accommodation','Salary','Clinic','Others'];
 
 let records = JSON.parse(localStorage.getItem('ledger_records') || '[]');
 let currentFlow = 'Expense';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzoWndc8_ySdR__tQyH2Rie2YxXNXcX5CV4TIkG56uoR6yHnkUufM-sbJ263Dkgo6k/exec';
 
-// ── Init ──────────────────────────────────────────────
 function init() {
-  // Set today
   const today = new Date();
   document.getElementById('f-date').value = today.toISOString().split('T')[0];
-
-  // Populate selects
   populateSelect('f-out', ACCOUNTS);
   populateSelect('f-in', ACCOUNTS);
   populateSelect('f-type', TYPES);
   updateDetailOptions();
-
   renderRecords();
   updateCount();
 }
 
 function populateSelect(id, options) {
-  const sel = document.getElementById(id);
-  sel.innerHTML = options.map(o => `<option value="${o}">${o || '— 選擇 —'}</option>`).join('');
+  document.getElementById(id).innerHTML = options.map(o =>
+    `<option value="${o}">${o || '— 選擇 —'}</option>`).join('');
 }
 
 function updateDetailOptions() {
   const type = document.getElementById('f-type').value;
-  const opts = DETAIL_MAP[type] || ALL_DETAILS;
-  populateSelect('f-detail', opts);
+  populateSelect('f-detail', DETAIL_MAP[type] || ALL_DETAILS);
 }
 
-// ── Flow selection ────────────────────────────────────
 function setFlow(btn) {
-  document.querySelectorAll('.flow-btn').forEach(b => {
-    b.className = 'flow-btn';
-  });
+  document.querySelectorAll('.flow-btn').forEach(b => b.className = 'flow-btn');
   currentFlow = btn.dataset.flow;
   btn.className = `flow-btn active-${currentFlow.toLowerCase()}`;
 }
 
-// ── Tab switching ─────────────────────────────────────
 function showTab(name) {
   ['input','records','export'].forEach(t => {
     document.getElementById(`tab-${t}`).style.display = t === name ? 'block' : 'none';
@@ -586,20 +661,16 @@ function showTab(name) {
   });
 }
 
-// ── Add record ────────────────────────────────────────
 async function addRecord() {
   const amount = parseFloat(document.getElementById('f-amount').value);
-  if (!amount || amount <= 0) {
-    alert('請輸入金額');
-    return;
-  }
+  if (!amount || amount <= 0) { alert('請輸入金額'); return; }
   const rec = {
     id: Date.now(),
     date: document.getElementById('f-date').value,
     flow: currentFlow,
     out: document.getElementById('f-out').value,
     in: document.getElementById('f-in').value,
-    amount: amount,
+    amount,
     type: document.getElementById('f-type').value,
     detail: document.getElementById('f-detail').value,
     vendor: document.getElementById('f-vendor').value.trim(),
@@ -609,78 +680,57 @@ async function addRecord() {
   const btn = document.querySelector('.add-btn');
   btn.textContent = '上傳中…';
   btn.disabled = true;
-  btn.style.opacity = '0.7';
+  btn.style.opacity = '0.6';
 
-  // Send to Google Sheets
   let synced = false;
   try {
     await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
+      method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rec),
     });
     synced = true;
-  } catch(e) {
-    console.warn('Google Sheets sync failed:', e);
-  }
+  } catch(e) { console.warn('Sync failed:', e); }
 
-  // Always save locally as backup
   records.unshift(rec);
-  save();
-  renderRecords();
-  updateCount();
+  save(); renderRecords(); updateCount();
 
-  // Reset fields
   document.getElementById('f-amount').value = '';
   document.getElementById('f-vendor').value = '';
   document.getElementById('f-notes').value = '';
 
   btn.disabled = false;
   btn.style.opacity = '';
-  if (synced) {
-    btn.textContent = '✓ 已同步到 Sheets';
-    btn.style.background = '#5eb8ff';
-  } else {
-    btn.textContent = '⚠ 已存本機（網路異常）';
-    btn.style.background = '#ffaa5e';
-  }
-  setTimeout(() => {
-    btn.textContent = '＋ 加入記錄';
-    btn.style.background = '';
-  }, 1800);
+  btn.textContent = synced ? '✓ 已記入 Sheets' : '⚠ 已存本機（網路異常）';
+  btn.style.background = synced ? '#1e6b4a' : '#b8962e';
+  setTimeout(() => { btn.textContent = '記　入'; btn.style.background = ''; }, 1800);
 }
 
-// ── Render ────────────────────────────────────────────
 function renderRecords() {
   const list = document.getElementById('records-list');
-  if (records.length === 0) {
-    list.innerHTML = '<div class="empty-state"><div class="icon">📋</div>還沒有記錄</div>';
+  if (!records.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📖</div>尚無記錄</div>';
     return;
   }
   list.innerHTML = records.map(r => {
-    const amtClass = r.flow === 'Expense' ? 'expense'
-      : r.flow === 'Income' ? 'income'
-      : r.flow === 'Transfer' ? 'transfer' : 'point';
-    const sign = r.flow === 'Expense' ? '-' : r.flow === 'Income' ? '+' : '';
-    const acct = r.flow === 'Transfer' ? `${r.out} → ${r.in}`
-      : r.flow === 'Expense' ? r.out
-      : r.flow === 'Income' ? r.in
-      : r.out || r.in;
-    const main = [r.type, r.detail].filter(Boolean).join(' · ') || '(未分類)';
+    const amtClass = r.flow==='Expense'?'expense':r.flow==='Income'?'income':r.flow==='Transfer'?'transfer':'point';
+    const sign = r.flow==='Expense'?'-':r.flow==='Income'?'+':'';
+    const acct = r.flow==='Transfer'?`${r.out} → ${r.in}`:r.flow==='Expense'?r.out:r.flow==='Income'?r.in:(r.out||r.in);
+    const main = [r.type, r.detail].filter(Boolean).join(' · ') || '未分類';
     const sub = [r.vendor, r.notes].filter(Boolean).join(' | ');
+    const flowClass = r.flow.toLowerCase().replace('pointin','pointin').replace('pointout','pointout');
     return `
-    <div class="record-item">
+    <div class="record-item flow-${flowClass}">
       <div class="record-left">
         <div class="record-flow-type">
           <span class="flow-tag ${r.flow}">${r.flow}</span>
           <span class="type-tag">${acct}</span>
         </div>
         <div class="record-main">${main}</div>
-        ${sub ? `<div class="record-sub">${sub}</div>` : ''}
+        ${sub?`<div class="record-sub">${sub}</div>`:''}
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div class="record-amount ${amtClass}">${sign}${r.amount.toLocaleString('zh-TW', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</div>
+        <div class="record-amount ${amtClass}">${sign}${r.amount.toLocaleString('zh-TW',{minimumFractionDigits:0,maximumFractionDigits:2})}</div>
         <div class="record-date">${r.date}</div>
       </div>
       <button class="delete-btn" onclick="deleteRecord(${r.id})">×</button>
@@ -697,75 +747,35 @@ function updateCount() {
 function deleteRecord(id) {
   if (!confirm('刪除這筆記錄？')) return;
   records = records.filter(r => r.id !== id);
-  save();
-  renderRecords();
-  updateCount();
+  save(); renderRecords(); updateCount();
 }
 
 function clearAll() {
   if (!confirm(`確定清除全部 ${records.length} 筆記錄？`)) return;
-  records = [];
-  save();
-  renderRecords();
-  updateCount();
+  records = []; save(); renderRecords(); updateCount();
 }
 
-function save() {
-  localStorage.setItem('ledger_records', JSON.stringify(records));
-}
+function save() { localStorage.setItem('ledger_records', JSON.stringify(records)); }
 
-// ── Export Excel ──────────────────────────────────────
 function exportExcel() {
-  if (records.length === 0) {
-    alert('沒有記錄可以匯出');
-    return;
-  }
-
-  // Sort by date ascending (oldest first, like original)
-  const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date));
-
-  // Header row matching original Excel format
+  if (!records.length) { alert('沒有記錄可以匯出'); return; }
+  const sorted = [...records].sort((a,b) => a.date.localeCompare(b.date));
   const header = ['Date','','Flow','Out','In','Amount','Type','Detail','Vendor','Notes'];
-
   const rows = sorted.map(r => {
-    // Convert date string to Excel serial number
     const d = new Date(r.date);
-    const excelDate = Math.floor((d - new Date(1899, 11, 30)) / 86400000);
-    return [
-      excelDate,           // Date (Excel serial)
-      '',                  // (day of week col, left blank)
-      r.flow,
-      r.out,
-      r.in,
-      r.amount,
-      r.type,
-      r.detail,
-      r.vendor,
-      r.notes,
-    ];
+    const excelDate = Math.floor((d - new Date(1899,11,30)) / 86400000);
+    const dow = d.getDay() + 1;
+    return [excelDate, dow, r.flow, r.out, r.in, r.amount, r.type, r.detail, r.vendor, r.notes];
   });
-
   const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
-
-  // Format date column as date
   const range = XLSX.utils.decode_range(ws['!ref']);
   for (let R = 1; R <= range.e.r; R++) {
-    const cell = ws[XLSX.utils.encode_cell({r: R, c: 0})];
-    if (cell) {
-      cell.t = 'n';
-      cell.z = 'yyyy/m/d';
-    }
+    const cell = ws[XLSX.utils.encode_cell({r:R,c:0})];
+    if (cell) { cell.t = 'n'; cell.z = 'yyyy/m/d'; }
   }
-
-  // Column widths
-  ws['!cols'] = [
-    {wch: 12}, {wch: 4}, {wch: 10}, {wch: 14}, {wch: 14},
-    {wch: 10}, {wch: 14}, {wch: 14}, {wch: 18}, {wch: 20}
-  ];
-
+  ws['!cols'] = [{wch:12},{wch:4},{wch:10},{wch:14},{wch:14},{wch:10},{wch:14},{wch:14},{wch:18},{wch:20}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Details');
-
   const now = new Date();
   const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
   XLSX.writeFile(wb, `記帳_${stamp}.xlsx`);
