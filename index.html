@@ -460,9 +460,76 @@ select {
 }
 .empty-state .icon { font-size: 28px; margin-bottom: 10px; opacity: 0.5; }
 
-input[type="date"]::-webkit-calendar-picker-indicator { filter: opacity(0.4); }
+/* ── Combobox ── */
+.combo-wrap { position: relative; }
 
-.divider { height: 1px; background: var(--border); margin: 4px 0 14px; }
+.combo-input {
+  width: 100%;
+  background: rgba(255,255,255,0.65);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: var(--font-zh);
+  padding: 10px 32px 10px 13px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  cursor: pointer;
+}
+.combo-input:focus {
+  border-color: var(--navy2);
+  border-bottom-color: var(--navy);
+  background: rgba(255,255,255,0.9);
+}
+.combo-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--ink3);
+  font-size: 10px;
+}
+
+.combo-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  box-shadow: 0 8px 24px rgba(26,45,74,0.13);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 999;
+  display: none;
+}
+.combo-dropdown.open { display: block; }
+
+.combo-option {
+  padding: 10px 13px;
+  font-size: 14px;
+  font-family: var(--font-zh);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.1s;
+  border-bottom: 1px solid rgba(205,196,176,0.3);
+}
+.combo-option:last-child { border-bottom: none; }
+.combo-option:hover, .combo-option.active { background: rgba(26,45,74,0.07); }
+.combo-option mark {
+  background: rgba(184,150,46,0.25);
+  color: var(--navy);
+  border-radius: 2px;
+  font-style: normal;
+}
+.combo-empty {
+  padding: 12px 13px;
+  font-size: 13px;
+  color: var(--ink3);
+  font-family: var(--font-zh);
+}
 </style>
 </head>
 <body>
@@ -511,22 +578,22 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: opacity(0.4); }
   <div class="row2">
     <div class="field">
       <label>Out　付款帳戶</label>
-      <select id="f-out"></select>
+      <div class="combo-wrap" id="combo-out"></div>
     </div>
     <div class="field">
       <label>In　收款帳戶</label>
-      <select id="f-in"></select>
+      <div class="combo-wrap" id="combo-in"></div>
     </div>
   </div>
 
   <div class="row2">
     <div class="field">
       <label>Type　大分類</label>
-      <select id="f-type" onchange="updateDetailOptions()"></select>
+      <div class="combo-wrap" id="combo-type"></div>
     </div>
     <div class="field">
       <label>Detail　細項</label>
-      <select id="f-detail"></select>
+      <div class="combo-wrap" id="combo-detail"></div>
     </div>
   </div>
 
@@ -625,25 +692,137 @@ let records = JSON.parse(localStorage.getItem('ledger_records') || '[]');
 let currentFlow = 'Expense';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzoWndc8_ySdR__tQyH2Rie2YxXNXcX5CV4TIkG56uoR6yHnkUufM-sbJ263Dkgo6k/exec';
 
+// ── Combobox ──────────────────────────────────────────
+function createCombo(containerId, options, placeholder, onChange) {
+  const wrap = document.getElementById(containerId);
+  const id = containerId.replace('combo-', 'f-');
+
+  wrap.innerHTML = `
+    <input class="combo-input" id="${id}" autocomplete="off" placeholder="${placeholder || '— 選擇或輸入 —'}" readonly>
+    <span class="combo-arrow">▾</span>
+    <div class="combo-dropdown" id="${id}-drop"></div>
+  `;
+
+  const input = wrap.querySelector('.combo-input');
+  const drop = wrap.querySelector('.combo-dropdown');
+  let allOptions = options;
+  let activeIdx = -1;
+  let selectedValue = '';
+
+  function renderOptions(filter) {
+    const q = filter.toLowerCase();
+    const filtered = q
+      ? allOptions.filter(o => o.toLowerCase().includes(q))
+      : allOptions;
+
+    if (!filtered.length) {
+      drop.innerHTML = `<div class="combo-empty">無符合選項</div>`;
+    } else {
+      drop.innerHTML = filtered.map((o, i) => {
+        const display = q
+          ? o.replace(new RegExp(`(${q})`, 'gi'), '<mark>$1</mark>')
+          : (o || '<span style="color:var(--ink3)">— 空白 —</span>');
+        return `<div class="combo-option" data-val="${o}" data-idx="${i}">${display || '— 空白 —'}</div>`;
+      }).join('');
+    }
+    activeIdx = -1;
+
+    drop.querySelectorAll('.combo-option').forEach(el => {
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        select(el.dataset.val);
+      });
+    });
+  }
+
+  function select(val) {
+    selectedValue = val;
+    input.value = val;
+    input.readOnly = true;
+    drop.classList.remove('open');
+    if (onChange) onChange(val);
+  }
+
+  function open() {
+    input.readOnly = false;
+    input.value = '';
+    renderOptions('');
+    drop.classList.add('open');
+    // scroll to current selection
+    const cur = drop.querySelector(`[data-val="${selectedValue}"]`);
+    if (cur) { cur.classList.add('active'); cur.scrollIntoView({block:'nearest'}); }
+  }
+
+  input.addEventListener('click', open);
+  input.addEventListener('focus', open);
+
+  input.addEventListener('input', () => {
+    renderOptions(input.value);
+    drop.classList.add('open');
+  });
+
+  input.addEventListener('keydown', e => {
+    const opts = drop.querySelectorAll('.combo-option');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, opts.length - 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      select(opts[activeIdx].dataset.val);
+      return;
+    } else if (e.key === 'Escape') {
+      input.value = selectedValue;
+      input.readOnly = true;
+      drop.classList.remove('open');
+      return;
+    }
+    opts.forEach((o, i) => o.classList.toggle('active', i === activeIdx));
+    if (activeIdx >= 0) opts[activeIdx].scrollIntoView({block:'nearest'});
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => {
+      drop.classList.remove('open');
+      // restore last selected if user typed but didn't pick
+      input.value = selectedValue;
+      input.readOnly = true;
+    }, 150);
+  });
+
+  // Public API
+  wrap._combo = {
+    getValue: () => selectedValue,
+    setValue: (val) => select(val),
+    setOptions: (opts) => { allOptions = opts; selectedValue = ''; input.value = ''; },
+  };
+}
+
+function getComboValue(id) {
+  const wrap = document.getElementById('combo-' + id.replace('f-',''));
+  return wrap && wrap._combo ? wrap._combo.getValue() : '';
+}
+
 function init() {
   const today = new Date();
   document.getElementById('f-date').value = today.toISOString().split('T')[0];
-  populateSelect('f-out', ACCOUNTS);
-  populateSelect('f-in', ACCOUNTS);
-  populateSelect('f-type', TYPES);
-  updateDetailOptions();
+
+  createCombo('combo-out', ACCOUNTS, '付款帳戶');
+  createCombo('combo-in', ACCOUNTS, '收款帳戶');
+  createCombo('combo-type', TYPES, '大分類', (val) => {
+    const detailOpts = DETAIL_MAP[val] || ALL_DETAILS;
+    document.getElementById('combo-detail')._combo.setOptions(detailOpts);
+  });
+  createCombo('combo-detail', ALL_DETAILS, '細項');
+
   renderRecords();
   updateCount();
 }
 
-function populateSelect(id, options) {
-  document.getElementById(id).innerHTML = options.map(o =>
-    `<option value="${o}">${o || '— 選擇 —'}</option>`).join('');
-}
-
 function updateDetailOptions() {
-  const type = document.getElementById('f-type').value;
-  populateSelect('f-detail', DETAIL_MAP[type] || ALL_DETAILS);
+  // handled by combo onChange
 }
 
 function setFlow(btn) {
@@ -668,11 +847,11 @@ async function addRecord() {
     id: Date.now(),
     date: document.getElementById('f-date').value,
     flow: currentFlow,
-    out: document.getElementById('f-out').value,
-    in: document.getElementById('f-in').value,
+    out: getComboValue('f-out'),
+    in: getComboValue('f-in'),
     amount,
-    type: document.getElementById('f-type').value,
-    detail: document.getElementById('f-detail').value,
+    type: getComboValue('f-type'),
+    detail: getComboValue('f-detail'),
     vendor: document.getElementById('f-vendor').value.trim(),
     notes: document.getElementById('f-notes').value.trim(),
   };
