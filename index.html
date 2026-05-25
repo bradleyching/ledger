@@ -592,6 +592,19 @@ select {
   color:var(--navy3); background:rgba(26,45,74,0.04);
   border-radius:var(--radius); display:none;
 }
+.amount-calc-wrap { display:flex; gap:8px; align-items:stretch; }
+.amount-calc-wrap .amount-wrap { flex:1; }
+.calc-btns { display:flex; flex-direction:column; gap:4px; }
+.calc-btn {
+  padding:0 10px; height:50%;
+  background:rgba(255,255,255,0.7); border:1px solid var(--border);
+  border-radius:var(--radius); color:var(--navy2);
+  font-size:12px; font-family:'DM Mono',monospace;
+  cursor:pointer; transition:all 0.15s; white-space:nowrap;
+  min-height:28px;
+}
+.calc-btn:hover { background:var(--navy2); color:var(--cream); border-color:var(--navy2); }
+.calc-btn.active { background:var(--navy2); color:var(--cream); border-color:var(--navy2); }
 .split-preview {
   margin-top:10px; padding:8px 10px;
   background:rgba(26,45,74,0.05); border-radius:var(--radius);
@@ -637,10 +650,29 @@ select {
     </div>
   </div>
 
-  <div class="field amount-wrap">
+
+  <div class="field">
     <label>金額 Amount</label>
-    <span class="currency">$</span>
-    <input type="number" id="f-amount" placeholder="0" step="0.01" min="0" inputmode="decimal" oninput="updateRatioDisplay()">
+    <div class="amount-calc-wrap">
+      <div class="amount-wrap">
+        <span class="currency">$</span>
+        <input type="number" id="f-amount" placeholder="0" step="0.01" min="0" inputmode="decimal" oninput="updateRatioDisplay()">
+      </div>
+      <div class="calc-btns">
+        <button class="calc-btn" onclick="calcAmount(0.5)" title="除以2">÷2</button>
+        <button class="calc-btn" onclick="calcAmount(null)" title="自訂比例" id="calc-custom-btn">×%</button>
+      </div>
+    </div>
+    <div id="calc-custom-row" style="display:none;margin-top:6px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:12px;color:var(--ink3);">套用</span>
+        <input type="number" id="f-calc-pct" value="50" min="1" max="100" step="1"
+          style="width:56px;padding:6px 8px;font-size:14px;" oninput="previewCalc()">
+        <span style="font-size:12px;color:var(--ink3);">%</span>
+        <button onclick="applyCalcPct()" style="padding:6px 12px;background:var(--navy2);color:var(--cream);border:none;border-radius:var(--radius);font-size:12px;cursor:pointer;">套用</button>
+        <span id="calc-preview" style="font-size:12px;color:var(--navy3);font-family:'DM Mono',monospace;"></span>
+      </div>
+    </div>
   </div>
 
   <div class="row2">
@@ -666,8 +698,15 @@ select {
   </div>
 
   <div class="field">
-    <label>Vendor　商家</label>
-    <input type="text" id="f-vendor" placeholder="商家名稱（選填）">
+    <label style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Vendor　商家</span>
+      <label style="font-size:10px;color:var(--navy3);cursor:pointer;letter-spacing:0.08em;">
+        ↑ 匯入 Excel
+        <input type="file" id="vendor-import" accept=".xlsx" style="display:none" onchange="importVendorsFromExcel(this)">
+      </label>
+    </label>
+    <div class="combo-wrap" id="combo-vendor"></div>
+    <div id="vendor-new-badge" style="display:none;margin-top:4px;font-size:11px;color:var(--gold);font-family:'DM Mono',monospace;letter-spacing:0.06em;">★ 新商家</div>
   </div>
 
   <div class="field">
@@ -900,7 +939,89 @@ function getComboValue(id) {
   return wrap && wrap._combo ? wrap._combo.getValue() : '';
 }
 
-// ── Split bill (multi-person) ─────────────────────────
+// ── Amount quick calc ─────────────────────────────────
+let calcCustomOpen = false;
+
+function calcAmount(ratio) {
+  if (ratio === null) {
+    // toggle custom %
+    calcCustomOpen = !calcCustomOpen;
+    document.getElementById('calc-custom-row').style.display = calcCustomOpen ? 'block' : 'none';
+    document.getElementById('calc-custom-btn').classList.toggle('active', calcCustomOpen);
+    previewCalc();
+    return;
+  }
+  const cur = parseFloat(document.getElementById('f-amount').value) || 0;
+  if (!cur) return;
+  document.getElementById('f-amount').value = Math.round(cur * ratio * 100) / 100;
+  updateRatioDisplay();
+}
+
+function previewCalc() {
+  const cur = parseFloat(document.getElementById('f-amount').value) || 0;
+  const pct = parseFloat(document.getElementById('f-calc-pct').value) || 0;
+  const result = Math.round(cur * pct / 100 * 100) / 100;
+  document.getElementById('calc-preview').textContent = cur ? `→ $${result.toLocaleString()}` : '';
+}
+
+function applyCalcPct() {
+  const cur = parseFloat(document.getElementById('f-amount').value) || 0;
+  const pct = parseFloat(document.getElementById('f-calc-pct').value) || 0;
+  if (!cur) return;
+  document.getElementById('f-amount').value = Math.round(cur * pct / 100 * 100) / 100;
+  updateRatioDisplay();
+  previewCalc();
+}
+
+// ── Vendor history ────────────────────────────────────
+let vendorHistory = new Set(JSON.parse(localStorage.getItem('vendor_history') || '[]'));
+
+function saveVendorHistory() {
+  localStorage.setItem('vendor_history', JSON.stringify([...vendorHistory]));
+}
+
+function getVendorList() {
+  return ['', ...Array.from(vendorHistory).sort()];
+}
+
+function refreshVendorCombo() {
+  const wrap = document.getElementById('combo-vendor');
+  if (wrap && wrap._combo) {
+    wrap._combo.setOptions(getVendorList());
+  }
+}
+
+async function importVendorsFromExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const data = await file.arrayBuffer();
+  const wb = XLSX.read(data);
+  let count = 0;
+  wb.SheetNames.forEach(name => {
+    const ws = wb.Sheets[name];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    rows.slice(1).forEach(row => {
+      // Vendor is column I (index 8) based on your format
+      const v = row[8];
+      if (v && typeof v === 'string' && v.trim()) {
+        vendorHistory.add(v.trim());
+        count++;
+      }
+    });
+  });
+  saveVendorHistory();
+  refreshVendorCombo();
+  input.value = '';
+  alert(`匯入完成！新增 ${count} 筆商家記錄，共 ${vendorHistory.size} 個商家。`);
+}
+
+function onVendorChange(val) {
+  const badge = document.getElementById('vendor-new-badge');
+  if (!val) { badge.style.display = 'none'; return; }
+  badge.style.display = vendorHistory.has(val) ? 'none' : 'block';
+}
+
+
 let splitMode = 'ratio';
 let splitPersons = []; // [{id, person, value}]
 let splitIdCounter = 0;
@@ -1043,6 +1164,7 @@ function init() {
     document.getElementById('combo-detail')._combo.setOptions(detailOpts);
   });
   createCombo('combo-detail', ALL_DETAILS, '細項');
+  createCombo('combo-vendor', getVendorList(), '商家名稱（選填）', onVendorChange);
 
   renderRecords();
   updateCount();
@@ -1072,8 +1194,15 @@ async function addRecord() {
   const out = getComboValue('f-out');
   const type = getComboValue('f-type');
   const detail = getComboValue('f-detail');
-  const vendor = document.getElementById('f-vendor').value.trim();
+  const vendor = document.getElementById('combo-vendor')?._combo?.getValue() || '';
   const notes = document.getElementById('f-notes').value.trim();
+
+  // Save new vendor to history
+  if (vendor && !vendorHistory.has(vendor)) {
+    vendorHistory.add(vendor);
+    saveVendorHistory();
+    refreshVendorCombo();
+  }
 
   // Build records to save
   const toSave = [];
@@ -1111,7 +1240,8 @@ async function addRecord() {
   save(); renderRecords(); updateCount();
 
   document.getElementById('f-amount').value = '';
-  document.getElementById('f-vendor').value = '';
+  document.getElementById('combo-vendor')?._combo?.setValue('');
+  document.getElementById('vendor-new-badge').style.display = 'none';
   document.getElementById('f-notes').value = '';
   // Reset split
   document.getElementById('f-split').checked = false;
