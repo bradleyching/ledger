@@ -775,10 +775,21 @@ select {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const ACCOUNTS = [
-  '','Cash','Jason','Robin','Travelshare',
+  '',
+  // People
+  'Jason','Robin','Hank','DAD','MOM',
+  // Cash & Local
+  'Cash','Travelshare','TravelShare','House',
+  // Banks TWD
   'FirstBank','Richart','Post','ShinKong','CTBC','KOKO','JKo','LinePay',
-  'FuturePay','Mega','CloudBank','iLEO','NewNew','Obank','TBB','TCB',
-  'SnY','TaiwanBank','LandBank','DBS','Fubon','NEXT','Rakuten','GAMA Pay','Open',
+  'FuturePay','Mega','CloudBank','iLEO','NewNew','Obank','OBank','TBB','TCB',
+  'SnY','TaiwanBank','LandBank','DBS','Fubon','NEXT','Rakuten','GAMA Pay',
+  'Open','OPEN','SOL','HSBC Inv','Richart Inv',
+  // Banks Foreign
+  'FirstBank USD','Richart USD','HSBC USD','Cloud USD','Dawho','Dawho USD',
+  // Foreign Currency
+  'CNY','USD','JPY','HKD','EUR','CAD','AUD','MYR','SGD','INR','THB','IDR',
+  // Credit Cards
   'CC FlyGo','CC GOGO','CC KOKO','CC Mega','CC KGI','CC FirstBank',
   'CC Fubon','CC YuanDa','CC Global','CC iBuy','CC TBB','CC TCB',
   'CC BoT','CC UBoT','CC J','CC JP','CC FBJCB','CC SKJCB','CC Currency',
@@ -786,10 +797,22 @@ const ACCOUNTS = [
   'CC AllMe','CC ESG','CC 7','CC Giving','CC LOL','CC CAL','CC TY',
   'CC Mitsui','CC SPJCB','CC Sport','CC Dawho','CC Lido','CC UniOpen',
   'CC Possible','CC OU','CC M','CC TSPoints','CC JKo',
-  'EC Mega','EC GOGO','EC KOKO','EC KGI','FamiPay',
-  'IC KOKO','IP LinePay','IP Obank','IP BoT',
-  'CNY','USD','JPY','HKD','EUR','CAD','AUD','MYR','SGD','INR','THB',
-  'Stock','Starbucks','GiftCard','Contact Lens','Hank','DAD','MOM','CCPoint',
+  // E-Cash
+  'EC Mega','EC GOGO','EC KOKO','EC KGI','EC Dawho','EC EZ','EC FBJCB',
+  'EC J','EC JP','EC SKJCB','EC TCB','EC TSPOINT','EC TY','EC iLEO',
+  'EC Mitsui','EC CAL','EC KHH','FamiPay',
+  // IC
+  'IC KOKO','IC Cube','IC UniOpen',
+  // IP
+  'IP LinePay','IP Obank','IP BoT','IP CAL','IP CTBC','IP FlyGo',
+  'IP Green','IP NewNew','IP OU','IP UBoT','IP YuanDa',
+  // Points
+  'CCPoint','LinePoint','FamiPoint','HappyGo','HiPoint','HamiPoint','UUPon',
+  // Assets / Invest
+  'Stock','CALStock','MOMStock','Starbucks','GiftCard','Contact Lens',
+  // Stores
+  'Carrefour','PCHome','POYA','PX Pay','Px Pay','7-11','101',
+  'Breeze','TrueFitness','CitiAir Bus','LAX',
 ];
 
 const TYPES = ['','Foods','Transport','Beauty','Sports','Travel','Entertainment',
