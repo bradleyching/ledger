@@ -1298,7 +1298,7 @@ async function addRecord() {
     toSave.push({ id: Date.now(), date, flow: currentFlow, out, in: '', amount: myAmt, type, detail, vendor, notes });
     others.forEach((o, i) => {
       if (o.amount > 0) {
-        toSave.push({ id: Date.now() + i + 1, date, flow: 'Transfer', out, in: o.person, amount: o.amount, type, detail, vendor, notes: notes ? `${notes} (${o.person}分)` : `${o.person}分` });
+        toSave.push({ id: Date.now() + i + 1, date, flow: 'Transfer', out, in: o.person, amount: o.amount, type: '', detail: '', vendor, notes });
       }
     });
   } else {
