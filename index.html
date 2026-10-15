@@ -700,7 +700,7 @@ select {
   <div class="field">
     <label style="display:flex;justify-content:space-between;align-items:center;">
       <span>Vendor　商家</span>
-      <button onclick="fetchVendorsFromSheets(true)" style="font-size:10px;color:var(--navy3);background:none;border:none;cursor:pointer;letter-spacing:0.08em;font-family:'DM Mono',monospace;padding:0;">↻ 重新整理清單</button>
+      <button onclick="fetchVendorsFromSheets(true)" style="font-size:10px;color:var(--navy3);background:none;border:none;cursor:pointer;letter-spacing:0.08em;font-family:'DM Mono',monospace;padding:0;">↻ 重新整理清單（商家＋帳戶）</button>
     </label>
     <div class="combo-wrap" id="combo-vendor"></div>
     <div id="vendor-new-badge" style="display:none;margin-top:4px;font-size:11px;color:var(--gold);font-family:'DM Mono',monospace;letter-spacing:0.06em;">★ 新商家</div>
@@ -774,7 +774,7 @@ select {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const ACCOUNTS = [
+let ACCOUNTS = [
   '',
   // People
   'Jason','Robin','Hank','DAD','MOM',
@@ -844,7 +844,7 @@ const ALL_DETAILS = ['','Breakfast','Lunch','Dinner','Coffee','Drinks','MRT','Bu
 
 let records = JSON.parse(localStorage.getItem('ledger_records') || '[]');
 let currentFlow = 'Expense';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyU43Jc-sniZtIvTXRJLP7acYyTUk9eUteetu_svl-gnFjp8UxBZMOAMv_qH4M4rRo/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxKQitIzdxTB7Ry1jV3TABvMUatdF8LGzVV7ndwLwFSZ-WiTKLFPEkBgrx3l6ZyKfA/exec';
 
 // ── Combobox ──────────────────────────────────────────
 function createCombo(containerId, options, placeholder, onChange) {
@@ -1074,21 +1074,50 @@ function refreshVendorCombo() {
   if (wrap && wrap._combo) wrap._combo.setOptions(getVendorList());
 }
 
+function refreshAccountCombos() {
+  const list = ACCOUNTS.filter(a => a);
+  ['combo-out','combo-in'].forEach(id => {
+    const wrap = document.getElementById(id);
+    if (wrap && wrap._combo) wrap._combo.setOptions(ACCOUNTS);
+  });
+  // update split person combos too
+  document.querySelectorAll('[id^="split-combo-"]').forEach(wrap => {
+    if (wrap && wrap._combo) wrap._combo.setOptions(list);
+  });
+}
+
 async function fetchVendorsFromSheets(showAlert) {
   try {
-    const url = GAS_URL + '?action=getVendors';
-    const res = await fetch(url);
-    const json = await res.json();
-    if (json.status === 'ok' && json.vendors) {
-      const before = vendorSet.size;
-      json.vendors.forEach(v => { if (v) vendorSet.add(v.trim()); });
+    // Fetch vendors and accounts in parallel
+    const [vRes, aRes] = await Promise.all([
+      fetch(GAS_URL + '?action=getVendors'),
+      fetch(GAS_URL + '?action=getAccounts')
+    ]);
+    const vJson = await vRes.json();
+    const aJson = await aRes.json();
+
+    let updated = [];
+
+    if (vJson.status === 'ok' && vJson.vendors) {
+      vJson.vendors.forEach(v => { if (v) vendorSet.add(v.trim()); });
       saveVendorCache();
       refreshVendorCombo();
-      if (showAlert) alert(`清單已更新！共 ${vendorSet.size} 個商家。`);
+      updated.push(`商家 ${vendorSet.size} 筆`);
     }
+
+    if (aJson.status === 'ok' && aJson.accounts && aJson.accounts.length > 0) {
+      // Merge sheet accounts into ACCOUNTS, keeping existing ones, removing duplicates
+      const existing = new Set(ACCOUNTS.filter(a => a));
+      aJson.accounts.forEach(a => { if (a) existing.add(a.trim()); });
+      ACCOUNTS = ['', ...Array.from(existing)];
+      refreshAccountCombos();
+      updated.push(`帳戶 ${existing.size} 筆`);
+    }
+
+    if (showAlert) alert(`清單已更新！${updated.join('、')}`);
   } catch(e) {
     if (showAlert) alert('無法連線到 Google Sheets，請確認網路。');
-    console.warn('Vendor fetch failed:', e);
+    console.warn('Fetch failed:', e);
   }
 }
 
@@ -1118,15 +1147,25 @@ function setSplitMode(mode) {
   updateSplitPreview();
 }
 
+function recalcEqualShares() {
+  if (splitMode !== 'ratio') return;
+  const n = splitPersons.length;
+  if (n === 0) return;
+  const share = Math.round(1000 / n) / 10; // e.g. 33.3 for 3, 50 for 2
+  splitPersons.forEach(p => p.value = share);
+}
+
 function addSplitPerson(defaultName) {
   const id = ++splitIdCounter;
   splitPersons.push({ id, person: defaultName || '', value: '' });
+  recalcEqualShares();
   renderSplitPersons();
   updateSplitPreview();
 }
 
 function removeSplitPerson(id) {
   splitPersons = splitPersons.filter(p => p.id !== id);
+  recalcEqualShares();
   renderSplitPersons();
   updateSplitPreview();
 }
