@@ -1328,7 +1328,7 @@ async function addRecord() {
     refreshVendorCombo();
     // Push new vendor to Google Sheets Vendor list
     fetch(GAS_URL, {
-      method: 'POST', mode: 'no-cors',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'addVendor', vendor }),
     }).catch(() => {});
@@ -1357,11 +1357,13 @@ async function addRecord() {
   let synced = false;
   try {
     for (const rec of toSave) {
-      await fetch(GAS_URL, {
-        method: 'POST', mode: 'no-cors',
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rec),
+        body: JSON.stringify({ action: 'addRecord', ...rec }),
       });
+      const json = await res.json();
+      if (json.status !== 'ok') throw new Error(json.message || 'GAS error');
     }
     synced = true;
   } catch(e) { console.warn('Sync failed:', e); }
