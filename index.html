@@ -1109,42 +1109,9 @@ function gasGet(params) {
   });
 }
 
-// POST via hidden form + iframe (bypasses CORS for GAS doPost)
+// All writes also go through JSONP GET — GAS doGet handles addRecord/addVendor too
 function gasPost(payload) {
-  return new Promise((resolve) => {
-    const iframeName = '_gasIframe_' + Date.now();
-    const iframe = document.createElement('iframe');
-    iframe.name = iframeName;
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = GAS_URL;
-    form.target = iframeName;
-    form.style.display = 'none';
-
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'payload';
-    input.value = JSON.stringify(payload);
-    form.appendChild(input);
-    document.body.appendChild(form);
-
-    const timer = setTimeout(() => {
-      cleanup(); resolve({ status: 'ok' }); // assume ok after timeout
-    }, 8000);
-
-    iframe.onload = () => { cleanup(); resolve({ status: 'ok' }); };
-
-    function cleanup() {
-      clearTimeout(timer);
-      if (form.parentNode) form.parentNode.removeChild(form);
-      setTimeout(() => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 500);
-    }
-
-    form.submit();
-  });
+  return gasGet(payload);
 }
 
 async function fetchVendorsFromSheets(showAlert) {
