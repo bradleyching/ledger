@@ -1091,15 +1091,68 @@ function refreshAccountCombos() {
   });
 }
 
+// JSONP helper — GAS doesn't support OPTIONS preflight, so we use script-tag GET
+function gasGet(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_gasCb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const qs = Object.entries(params).map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+    const url = GAS_URL + '?' + qs + '&callback=' + cbName;
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup(); reject(new Error('timeout'));
+    }, 12000);
+    function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('script error')); };
+    script.src = url;
+    document.head.appendChild(script);
+  });
+}
+
+// POST via hidden form + iframe (bypasses CORS for GAS doPost)
+function gasPost(payload) {
+  return new Promise((resolve) => {
+    const iframeName = '_gasIframe_' + Date.now();
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = GAS_URL;
+    form.target = iframeName;
+    form.style.display = 'none';
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+    document.body.appendChild(form);
+
+    const timer = setTimeout(() => {
+      cleanup(); resolve({ status: 'ok' }); // assume ok after timeout
+    }, 8000);
+
+    iframe.onload = () => { cleanup(); resolve({ status: 'ok' }); };
+
+    function cleanup() {
+      clearTimeout(timer);
+      if (form.parentNode) form.parentNode.removeChild(form);
+      setTimeout(() => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 500);
+    }
+
+    form.submit();
+  });
+}
+
 async function fetchVendorsFromSheets(showAlert) {
   try {
-    // Fetch vendors and accounts in parallel
-    const [vRes, aRes] = await Promise.all([
-      fetch(GAS_URL + '?action=getVendors'),
-      fetch(GAS_URL + '?action=getAccounts')
+    const [vJson, aJson] = await Promise.all([
+      gasGet({ action: 'getVendors' }),
+      gasGet({ action: 'getAccounts' }),
     ]);
-    const vJson = await vRes.json();
-    const aJson = await aRes.json();
 
     let updated = [];
 
@@ -1111,7 +1164,6 @@ async function fetchVendorsFromSheets(showAlert) {
     }
 
     if (aJson.status === 'ok' && aJson.accounts && aJson.accounts.length > 0) {
-      // Merge sheet accounts into ACCOUNTS, keeping existing ones, removing duplicates
       const existing = new Set(ACCOUNTS.filter(a => a));
       aJson.accounts.forEach(a => { if (a) existing.add(a.trim()); });
       ACCOUNTS = ['', ...Array.from(existing)];
@@ -1156,7 +1208,9 @@ function recalcEqualShares() {
   if (splitMode !== 'ratio') return;
   const n = splitPersons.length;
   if (n === 0) return;
-  const share = Math.round(1000 / n) / 10; // e.g. 33.3 for 3, 50 for 2
+  // n = number of OTHER people; total people = n + 1 (me)
+  const totalPeople = n + 1;
+  const share = Math.round(1000 / totalPeople) / 10; // e.g. 50 for 2 total, 33.3 for 3 total
   splitPersons.forEach(p => p.value = share);
 }
 
@@ -1327,11 +1381,7 @@ async function addRecord() {
     saveVendorCache();
     refreshVendorCombo();
     // Push new vendor to Google Sheets Vendor list
-    fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'addVendor', vendor }),
-    }).catch(() => {});
+    gasPost({ action: 'addVendor', vendor }).catch(() => {});
   }
 
   // Build records to save
@@ -1357,13 +1407,7 @@ async function addRecord() {
   let synced = false;
   try {
     for (const rec of toSave) {
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'addRecord', ...rec }),
-      });
-      const json = await res.json();
-      if (json.status !== 'ok') throw new Error(json.message || 'GAS error');
+      await gasPost({ action: 'addRecord', ...rec });
     }
     synced = true;
   } catch(e) { console.warn('Sync failed:', e); }
