@@ -1316,6 +1316,61 @@ function init() {
 
   // Fetch latest vendors from Google Sheets silently
   fetchVendorsFromSheets(false);
+
+  // ── URL params: auto-fill from Shortcuts (半自動記帳) ──
+  const urlParams = new URLSearchParams(window.location.search);
+  const pAmount  = urlParams.get('amount');
+  const pVendor  = urlParams.get('vendor');
+  const pAccount = urlParams.get('account');
+  const pNote    = urlParams.get('note');
+  const pType    = urlParams.get('type');
+  const pDetail  = urlParams.get('detail');
+
+  if (pAmount || pVendor || pAccount) {
+    // Switch to input tab
+    showTab('input');
+
+    if (pAmount) {
+      document.getElementById('f-amount').value = pAmount;
+    }
+    if (pVendor) {
+      // Set vendor combobox
+      const vendorCombo = document.getElementById('combo-vendor')._combo;
+      if (vendorCombo) vendorCombo.setValue(decodeURIComponent(pVendor));
+      else document.getElementById('f-vendor').value = decodeURIComponent(pVendor);
+    }
+    if (pAccount) {
+      // Set account combobox (出帳)
+      const accDecoded = decodeURIComponent(pAccount);
+      const outCombo = document.getElementById('combo-out')._combo;
+      if (outCombo) outCombo.setValue(accDecoded);
+    }
+    if (pType) {
+      const typeCombo = document.getElementById('combo-type')._combo;
+      if (typeCombo) {
+        typeCombo.setValue(decodeURIComponent(pType));
+        // Trigger detail options update
+        const detailOpts = DETAIL_MAP[decodeURIComponent(pType)] || ALL_DETAILS;
+        document.getElementById('combo-detail')._combo.setOptions(detailOpts);
+      }
+    }
+    if (pDetail) {
+      const detailCombo = document.getElementById('combo-detail')._combo;
+      if (detailCombo) detailCombo.setValue(decodeURIComponent(pDetail));
+    }
+    if (pNote) {
+      document.getElementById('f-note').value = decodeURIComponent(pNote);
+    }
+
+    // Clean URL so refresh doesn't re-fill
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // Flash highlight on amount field to draw attention
+    const amtEl = document.getElementById('f-amount');
+    amtEl.style.transition = 'background 0.3s';
+    amtEl.style.background = 'rgba(184,150,46,0.25)';
+    setTimeout(() => { amtEl.style.background = ''; }, 1500);
+  }
 }
 
 function setFlow(btn) {
